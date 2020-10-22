@@ -1,6 +1,6 @@
 # LaTeX2Octave
 
-Turning LateX string to normal strings for performing numerical calculations in Octave.
+Turning LateX string to normal strings to be able perform numerical calculations in Octave.
 
 ### Some examples
 
