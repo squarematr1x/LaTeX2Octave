@@ -35,9 +35,9 @@ function out = MissingBrackets(in)
   right_brackets = 0;
   
   for i=1:n
-    if in(i) == '(' || in(i) == '{'
+    if in(i) == '(' || in(i) == '{' || in(i) == '['
       left_brackets++;
-    elseif in(i) == ')' || in(i) == '}'
+    elseif in(i) == ')' || in(i) == '}' || in(i) == ']'
       right_brackets++;
     endif
   endfor
