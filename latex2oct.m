@@ -1,4 +1,4 @@
-function out = LaTex2Octave(in)
+function out = latex2oct(in)
   ## -- latex2octave (S)
   ##     Convert input LaTex string S to normal string
   ##     Resulting string can be copied to perform numerical calculations
