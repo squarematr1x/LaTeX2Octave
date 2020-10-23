@@ -1,8 +1,8 @@
 # LaTeX2Octave
 
-Turning LateX string to normal string to be able perform numerical calculations in Octave.
+Turning LateX string to normal string to perform numerical calculations in Octave.
 
-### Some examples
+### Some examples:
 
 ![eq1](https://github.com/squarematr1x/LaTeX2Octave/blob/master/equations/eq1.png?raw=true)
 
