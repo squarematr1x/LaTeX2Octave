@@ -13,4 +13,7 @@ ans = 2*pi+sqrt((-4*a)/(3*b))*c
 
 >> latex2oct("a^{\frac{sin\left(3pi\right)}{cos\left(2pi\right)}}\times b")
 ans = a^((sin(3*pi))/(cos(2*pi)))*b
+
+>> latex2oct("\sqrt[a]{ln\left(x\right)+sin\left(pi\right)}\cdot \sqrt{\frac{r}{3pi}}")
+ans = nthroot((log(x)+sin(pi)),a)*sqrt((r)/(3*pi))
 ```
