@@ -7,7 +7,7 @@ function out = latex2oct(in)
   oct_symbols = {"^", "*", "*", "/", "", "", "", "(", ")"};
   
   functions = {"\sin", "\cos", "\tan", "\pi", "\log", "\ln", "\sqrt", "\frac"};
-  oct_functions = {"sin", "cos", "tan", "pi", "log10", "log", "sqrt", "frac"};
+  oct_functions = {"sin", "cos", "tan", "pi", "log_10_", "log", "sqrt", "frac"};
   
   assert(ischar(in), "Input must be a string")
   assert(!MissingBrackets(in), "Input string is missing parenthesis")
@@ -25,6 +25,7 @@ function out = latex2oct(in)
   in = HandleFractions(in);
   in = HandleRoots(in);
   in = AddMulSign(in);
+  in = RemoveUnderscore(in);
   
   out = in;
 endfunction
@@ -47,7 +48,7 @@ endfunction
 
 function out = AddMulSign(in)
   new_string = "";
-  operators = {'(','+','-','^','*','/',',',')'};
+  operators = {'(','+','-','^','*','/',',','_',')'};
   n = length(in);
   
   for i=1:n 
@@ -73,7 +74,7 @@ function out = AddMulSign(in)
 endfunction
 
 function out = IsFunction(in, index=1, method=0)
-  oct_functions = {"sin", "cos", "tan", "pi", "log10", "log", "sqrt", "nthroot"};
+  oct_functions = {"sin", "cos", "tan", "pi", "log_10_", "log", "sqrt", "nthroot"};
   new_str = "";
   end_index = length(in);
   start_index = 1;
@@ -163,7 +164,6 @@ function out = HandleRoots(in)
       new_str(end+1:end+8) = "nthroot(";
       exp_found = 1;
       i++;
-      count = 0;
       while in(i) != ']'
         exp_str(end+1) = in(i);
         i++;
@@ -175,7 +175,6 @@ function out = HandleRoots(in)
       left_brackets = 1;
       right_brackets = 0;
       i++;
-      count = 0;
       while left_brackets-right_brackets != 0
         new_str(end+1) = in(i);      
         if in(i) == '('
@@ -206,4 +205,8 @@ function out = IsNthRoot(in, index=1)
     matches = (in(index:index+4) == "sqrt[");
     out = all(matches > 0);
   endif
+endfunction
+
+function out = RemoveUnderscore(in)
+  out = strrep(in, '_', '');
 endfunction
