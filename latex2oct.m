@@ -6,8 +6,8 @@ function out = latex2oct(in)
   symbols = {"\^", "\cdot", "\times", "\div", "\left", "\right", " ", "{", "}"};
   oct_symbols = {"^", "*", "*", "/", "", "", "", "(", ")"};
   
-  functions = {"\sin", "\cos", "\tan", "\pi", "\log", "\ln", "\sqrt", "\frac"};
-  oct_functions = {"sin", "cos", "tan", "pi", "log_10_", "log", "sqrt", "frac"};
+  functions = {"\pi", "\sin", "\cos", "\tan", "\log", "\ln", "\sqrt", "\frac"};
+  oct_functions = {"`","@sin@", "@cos@", "@tan@", "@log10@", "@log@", "@sqrt@", "@frac@"};
   
   assert(ischar(in), "Input must be a string")
   assert(!MissingBrackets(in), "Input string is missing parenthesis")
@@ -25,7 +25,8 @@ function out = latex2oct(in)
   in = HandleFractions(in);
   in = HandleRoots(in);
   in = AddMulSign(in);
-  in = RemoveUnderscore(in);
+  in = RemoveFunctionToken(in);
+  in = RemovePiToken(in);
   
   out = in;
 endfunction
@@ -48,69 +49,60 @@ endfunction
 
 function out = AddMulSign(in)
   new_string = "";
-  operators = {'(','+','-','^','*','/',',','_',')'};
+  operators = {'(','+','-','^','*','/',',',')','@'};
   n = length(in);
-  
+  inside_func_str = 0;
+
   for i=1:n 
     new_string(end+1) = in(i);  
-    if i < n
-      if in(i+1) == '(' && all(strcmp(in(i), operators(1:end-1)) == 0) && !IsFunction(in, i, 1)
+    if i < n  
+      if in(i) == '@'
+        inside_func_str = !inside_func_str;
+      elseif in(i+1) == '(' && all(strcmp(in(i), operators(1:end-2)) == 0)
         new_string(end+1) = '*';
       elseif in(i) == ')' && all(strcmp(in(i+1), operators(2:end)) == 0)
         new_string(end+1) = '*';
-      elseif isalpha(in(i)) && IsFunction(in, i+1, 0)
-        new_string(end+1) = '*';
-      elseif IsFunction(in, i, 1) && isalpha(in(i+1))
-        new_string(end+1) = '*';
-      elseif isalpha(in(i)) && isdigit(in(i+1))
+      elseif !inside_func_str
+        if isalpha(in(i)) 
+          if isalpha(in(i+1))
+            new_string(end+1) = '*';
+          elseif isdigit(in(i+1))
+            new_string(end+1) = '*';  
+          elseif IsPi(in(i+1))
+            new_string(end+1) = '*';
+          endif  
+        elseif isdigit(in(i))
+          if isalpha(in(i+1))      
+            new_string(end+1) = '*';
+          elseif IsPi(in(i+1))
+            new_string(end+1) = '*';
+          endif
+        elseif IsPi(in(i))
+          if isalpha(in(i+1))
+            new_string(end+1) = '*';
+          elseif isdigit(in(i+1))
+            new_string(end+1) = '*';
+          elseif IsPi(in(i+1))
+            new_string(end+1) = '*';
+          endif
+        elseif (isdigit(in(i)) || isalpha(in(i)) || IsPi(in(i))) && in(i+1) == '@'
           new_string(end+1) = '*';
-      elseif isdigit(in(i)) && isalpha(in(i+1))
-        new_string(end+1) = '*';
-      endif
+        endif
+      endif  
     endif  
   endfor
   
   out = new_string;
 endfunction
 
-function out = IsFunction(in, index=1, method=0)
-  oct_functions = {"sin", "cos", "tan", "pi", "log_10_", "log", "sqrt", "nthroot"};
-  new_str = "";
-  end_index = length(in);
-  start_index = 1;
-  is_function = 0;
+function out = IsPi(t)
+  token_found = 0;
   
-  if method == 0
-    start_index = index;
-    for i=start_index:end_index
-      if isalpha(in(i))
-          new_str(end+1) = in(i);
-          end_index = i;
-        if !all(strcmp(new_str, oct_functions) == 0)
-          is_function = 1;
-          break
-        endif
-      else
-          break
-      endif
-    endfor
-  else
-    end_index = index;
-    for i=end_index:-1:start_index
-      if isalpha(in(i))
-          new_str(end+1) = in(i);
-          start_index = i;
-        if !all(strcmp(fliplr(new_str), oct_functions) == 0)
-          is_function = 1;
-          break
-        endif
-      else
-          break
-      endif
-    endfor
+  if t == '`'
+    token_found = 1;
   endif
   
-  out = is_function;
+  out = token_found;
 endfunction
 
 # Convert \frac{a}{b} to a/b
@@ -123,7 +115,7 @@ function out = HandleFractions(in)
   while i <= n
     if IsFraction(in, i)      
       fraction_found = 1;
-      i += 4;
+      i += 6;
     elseif fraction_found && i+1 <= n && in(i:i+1) == ")("
       new_str(end+1:end+3) = ')/(';
       fraction_found = 0;
@@ -142,8 +134,8 @@ function out = IsFraction(in, index=1)
   i = index;
   out = 0;
   
-  if i + 3 <= n
-    matches = (in(i:i+3) == "frac");
+  if i + 5 <= n
+    matches = (in(i:i+5) == "@frac@");
     out = all(matches > 0);
   endif
 endfunction
@@ -159,9 +151,9 @@ function out = HandleRoots(in)
   while i <= n
     if IsNthRoot(in, i)
       root_found = 1;
-      i += 4;
+      i += 6;
     elseif root_found && in(i) == '['
-      new_str(end+1:end+8) = "nthroot(";
+      new_str(end+1:end+10) = "@nthroot@(";
       exp_found = 1;
       i++;
       while in(i) != ']'
@@ -201,12 +193,16 @@ function out = IsNthRoot(in, index=1)
   n = length(in);
   out = 0;
   
-  if index + 4 <= n
-    matches = (in(index:index+4) == "sqrt[");
+  if index + 6 <= n
+    matches = (in(index:index+6) == "@sqrt@[");
     out = all(matches > 0);
   endif
 endfunction
 
-function out = RemoveUnderscore(in)
-  out = strrep(in, '_', '');
+function out = RemoveFunctionToken(in)
+  out = strrep(in, '@', '');
+endfunction
+
+function out = RemovePiToken(in)
+  out = strrep(in, '`', "pi");
 endfunction
