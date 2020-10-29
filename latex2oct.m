@@ -49,7 +49,7 @@ endfunction
 
 function out = AddMulSign(in)
   new_string = "";
-  operators = {'(','+','-','^','*','/',',',')','@'};
+  operators = {'(','+','-','^','*','/',',',')'};
   n = length(in);
   inside_func_str = 0;
 
@@ -58,35 +58,13 @@ function out = AddMulSign(in)
     if i < n  
       if in(i) == '@'
         inside_func_str = !inside_func_str;
-      elseif in(i+1) == '(' && all(strcmp(in(i), operators(1:end-2)) == 0)
+      elseif in(i+1) == '(' && all(strcmp(in(i), operators(1:end-1)) == 0)
         new_string(end+1) = '*';
       elseif in(i) == ')' && all(strcmp(in(i+1), operators(2:end)) == 0)
         new_string(end+1) = '*';
       elseif !inside_func_str
-        if isalpha(in(i)) 
-          if isalpha(in(i+1))
-            new_string(end+1) = '*';
-          elseif isdigit(in(i+1))
-            new_string(end+1) = '*';  
-          elseif IsPi(in(i+1))
-            new_string(end+1) = '*';
-          endif  
-        elseif isdigit(in(i))
-          if isalpha(in(i+1))      
-            new_string(end+1) = '*';
-          elseif IsPi(in(i+1))
-            new_string(end+1) = '*';
-          endif
-        elseif IsPi(in(i))
-          if isalpha(in(i+1))
-            new_string(end+1) = '*';
-          elseif isdigit(in(i+1))
-            new_string(end+1) = '*';
-          elseif IsPi(in(i+1))
-            new_string(end+1) = '*';
-          endif
-        elseif (isdigit(in(i)) || isalpha(in(i)) || IsPi(in(i))) && in(i+1) == '@'
-          new_string(end+1) = '*';
+        if CanAddMulSign(in, i)
+          new_string(end+1) = '*'; 
         endif
       endif  
     endif  
@@ -95,10 +73,44 @@ function out = AddMulSign(in)
   out = new_string;
 endfunction
 
+function out = CanAddMulSign(in, index=1)
+  add_mul = 0;
+  
+  if isalpha(in(index))
+    if isalpha(in(index+1)) || isdigit(in(index+1)) || IsPi(in(index+1))
+      add_mul = 1;
+    endif
+  elseif IsPi(in(index))
+    if isalpha(in(index+1)) || isdigit(in(index+1)) || IsPi(in(index+1))
+      add_mul = 1;
+    endif
+  elseif isdigit(in(index))
+    if isalpha(in(index+1))  || IsPi(in(index+1))
+      add_mul = 1;
+    endif
+  elseif IsFunc(in(index+1))
+    if isalpha(in(index)) || isdigit(in(index)) || IsPi(in(index))
+      add_mul = 1;
+    endif
+  endif
+  
+  out = add_mul;
+endfunction
+
 function out = IsPi(t)
   token_found = 0;
   
   if t == '`'
+    token_found = 1;
+  endif
+  
+  out = token_found;
+endfunction
+
+function out = IsFunc(t)
+  token_found = 0;
+  
+  if t == '@'
     token_found = 1;
   endif
   
