@@ -29,3 +29,26 @@ ans = a^((sin(3*pi))/(cos(2*pi)))*b
 >> latex2oct("\sqrt[a]{ln\left(x\right)+sin\left(pi\right)}\cdot \sqrt{\frac{r}{3pi}}")
 ans = nthroot((log(x)+sin(pi)),a)*sqrt((r)/(3*pi))
 ```
+
+### How to use in Octave:
+
+Assign values to desired variables:
+
+```
+>> x = 4.5;
+>> y = 3.2;
+```
+
+Call latex2oct funtion with the chosen LaTeX string:
+
+```
+>> latex2oct("ln\left(\sqrt{x}\right)\cdot 2y")
+ans = log(sqrt(x))*2*y
+```
+
+Copy the answer and calculate the final result:
+
+```
+>> log(sqrt(x))*2*y
+ans =  4.8130
+```
